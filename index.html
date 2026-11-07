@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Wedding Budget Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #faf5ee;
+        --surface: #ffffff;
+        --surface-2: #f4ead9;
+        --ink: #2b1a1d;
+        --ink-soft: #5d4a4e;
+        --line: #e3d5c3;
+        --maroon: #7a1e2b;
+        --maroon-soft: #f7e3e0;
+        --gold: #9a7414;
+        --gold-soft: #f6ecd2;
+        --green: #1e6b3a;
+        --green-soft: #e2f0e4;
+        --red: #a4231c;
+        --red-soft: #f9e4e1;
+        --shadow: 0 1px 3px rgba(70, 30, 20, 0.08), 0 8px 24px rgba(70, 30, 20, 0.06);
+        --radius: 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1c1214;
+          --surface: #2a1d20;
+          --surface-2: #35262a;
+          --ink: #f3e7dd;
+          --ink-soft: #c9b3ab;
+          --line: #4a353a;
+          --maroon: #e08a96;
+          --maroon-soft: #43262b;
+          --gold: #dcb254;
+          --gold-soft: #3d3220;
+          --green: #7fce97;
+          --green-soft: #22382a;
+          --red: #f0938a;
+          --red-soft: #42241f;
+          --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Work Sans", system-ui, -apple-system, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 64px; }
+      h1, h2, h3 { font-family: "Playfair Display", Georgia, serif; line-height: 1.15; margin: 0; }
+      h1 { font-size: clamp(30px, 5.5vw, 44px); font-weight: 800; color: var(--maroon); }
+      h2 { font-size: 22px; font-weight: 700; }
+      h3 { font-size: 17px; font-weight: 700; }
+      p { margin: 0; }
+      .lede { color: var(--ink-soft); max-width: 62ch; margin-top: 8px; }
+      .rule { height: 3px; background: var(--gold); width: 72px; border-radius: 2px; margin: 14px 0 4px; }
+
+      section.card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 20px;
+        margin-top: 20px;
+      }
+      .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+      .card-head .sub { color: var(--ink-soft); font-size: 14px; }
+
+      /* Verdict */
+      .verdict { border-top: 5px solid var(--maroon); }
+      .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+      .stat { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
+      .stat .label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+      .stat .value { font-size: 24px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+      .stat .note { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+      .verdict-line { margin-top: 16px; padding: 14px 16px; border-radius: 10px; font-size: 16px; }
+      .verdict-line.ok { background: var(--green-soft); color: var(--green); }
+      .verdict-line.warn { background: var(--red-soft); color: var(--red); }
+      .verdict-line.neutral { background: var(--gold-soft); color: var(--ink); }
+      .verdict-line strong { font-weight: 700; }
+
+      /* Forms */
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+      @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+      .field { margin-bottom: 14px; }
+      label.f-label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+      input[type="number"], input[type="text"], input[type="date"], select {
+        width: 100%; padding: 10px 12px; font: inherit; font-size: 16px;
+        color: var(--ink); background: var(--surface);
+        border: 1px solid var(--line); border-radius: 9px;
+      }
+      input:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: var(--gold); }
+      input[type="range"] { width: 100%; accent-color: var(--maroon); }
+      .range-row { display: flex; align-items: center; gap: 12px; }
+      .range-row output { font-weight: 700; min-width: 86px; text-align: right; font-variant-numeric: tabular-nums; }
+      .hint { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+
+      .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+      .preset {
+        text-align: left; cursor: pointer; font: inherit;
+        border: 1.5px solid var(--line); border-radius: 11px; padding: 12px 14px;
+        background: var(--surface); color: var(--ink);
+      }
+      .preset:hover { border-color: var(--gold); }
+      .preset.active { border-color: var(--maroon); background: var(--maroon-soft); }
+      .preset .p-name { font-weight: 700; font-size: 15px; }
+      .preset .p-price { font-size: 20px; font-weight: 700; color: var(--maroon); margin-top: 2px; font-variant-numeric: tabular-nums; }
+      .preset .p-desc { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+
+      /* Breakdown table */
+      .cat-row { display: grid; grid-template-columns: 1fr 130px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px dashed var(--line); }
+      .cat-row:last-of-type { border-bottom: none; }
+      .cat-name { font-weight: 600; }
+      .cat-basis { font-size: 12.5px; color: var(--ink-soft); }
+      .cat-row input { text-align: right; font-variant-numeric: tabular-nums; }
+      .bar-track { height: 8px; background: var(--surface-2); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+      .bar-fill { height: 100%; background: var(--maroon); border-radius: 4px; min-width: 2px; }
+      .total-row { display: flex; justify-content: space-between; align-items: baseline; padding-top: 14px; margin-top: 6px; border-top: 2px solid var(--gold); }
+      .total-row .t-label { font-weight: 700; font-size: 17px; }
+      .total-row .t-value { font-size: 26px; font-weight: 800; color: var(--maroon); font-variant-numeric: tabular-nums; }
+
+      /* Vendor tracker */
+      .table-scroll { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; font-size: 15px; }
+      th { text-align: left; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 8px 8px 0; border-bottom: 2px solid var(--line); }
+      td { padding: 8px 8px 8px 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
+      td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+      td input, td select { padding: 7px 9px; font-size: 15px; }
+      .btn {
+        font: inherit; font-weight: 600; cursor: pointer; border-radius: 9px;
+        padding: 10px 16px; border: 1.5px solid var(--maroon);
+        background: var(--maroon); color: #fff;
+      }
+      @media (prefers-color-scheme: dark) { .btn { color: #1c1214; } }
+      .btn.secondary { background: transparent; color: var(--maroon); }
+      .btn.small { padding: 6px 10px; font-size: 14px; }
+      .btn.danger { border-color: var(--red); background: transparent; color: var(--red); }
+      .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+      tfoot td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--gold); }
+      .empty-note { color: var(--ink-soft); font-size: 14.5px; padding: 10px 0; }
+      @media (max-width: 640px) {
+        .table-scroll { overflow-x: visible; }
+        table, tbody, tfoot, tr, td { display: block; width: 100%; }
+        thead { display: none; }
+        tbody tr { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+        tbody td { border-bottom: none; padding: 5px 0; }
+        tbody td::before {
+          content: attr(data-label); display: block;
+          font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em;
+          text-transform: uppercase; color: var(--ink-soft); margin-bottom: 3px;
+        }
+        tbody td.num { text-align: left; }
+        tbody td input, tbody td select { width: 100%; }
+        tbody td.del-cell::before { content: none; }
+        tfoot tr { display: flex; flex-wrap: wrap; gap: 4px 16px; border-top: 2px solid var(--gold); padding-top: 10px; }
+        tfoot td { border-top: none; padding: 2px 0; width: auto; }
+        tfoot td.num { text-align: left; }
+        tfoot td.num::before { content: attr(data-label) ": "; font-weight: 500; color: var(--ink-soft); }
+      }
+
+      /* Timeline */
+      .steps { list-style: none; margin: 0; padding: 0; }
+      .step { display: grid; grid-template-columns: 118px 1fr; gap: 14px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+      .step:last-child { border-bottom: none; }
+      .step .when { font-weight: 700; color: var(--maroon); font-size: 14.5px; }
+      .step .when .date { display: block; font-weight: 500; color: var(--ink-soft); font-size: 13px; }
+      .step .what strong { display: block; font-size: 15.5px; }
+      .step .what span { color: var(--ink-soft); font-size: 14px; }
+      .step.due .when { color: var(--red); }
+      @media (max-width: 520px) { .step { grid-template-columns: 92px 1fr; } }
+
+      .loan-box { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+      .loan-box .lb-title { font-weight: 700; margin-bottom: 6px; }
+      .loan-controls { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+      .loan-controls .field { margin-bottom: 0; min-width: 140px; flex: 1; }
+      footer { margin-top: 28px; color: var(--ink-soft); font-size: 13.5px; max-width: 70ch; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Wedding Budget Planner</h1>
+        <div class="rule"></div>
+        <p class="lede">Plan a Bengaluru wedding for 2027–2028 without the spreadsheet spiral. Pick a venue style, set your guest count, and see the full cost set against what you can actually save by the date — plus what borrowing the shortfall would really cost.</p>
+      </header>
+
+      <!-- VERDICT -->
+      <section class="card verdict" aria-label="Summary">
+        <div class="verdict-grid">
+          <div class="stat">
+            <div class="label">Wedding cost</div>
+            <div class="value" id="v-total">—</div>
+            <div class="note" id="v-perguest"></div>
+          </div>
+          <div class="stat">
+            <div class="label">Saved by the date</div>
+            <div class="value" id="v-saved">—</div>
+            <div class="note" id="v-months"></div>
+          </div>
+          <div class="stat">
+            <div class="label">Gap</div>
+            <div class="value" id="v-gap">—</div>
+            <div class="note" id="v-gapnote"></div>
+          </div>
+          <div class="stat">
+            <div class="label">Save per month</div>
+            <div class="value" id="v-monthly">—</div>
+            <div class="note">from now to the wedding</div>
+          </div>
+        </div>
+        <p class="verdict-line neutral" id="v-line">Enter your income and savings below and this line gives you the verdict: covered, or exactly how far short you land.</p>
+        <div class="loan-box" id="loan-box" hidden>
+          <div class="lb-title">If you borrow the gap instead</div>
+          <p id="loan-text"></p>
+          <div class="loan-controls">
+            <div class="field">
+              <label class="f-label" for="loan-rate">Loan interest rate (% / year)</label>
+              <input type="number" id="loan-rate" value="11" min="0" max="30" step="0.1" />
+            </div>
+            <div class="field">
+              <label class="f-label" for="loan-tenure">Tenure (months)</label>
+              <select id="loan-tenure">
+                <option value="12">12 months</option>
+                <option value="24">24 months</option>
+                <option value="36" selected>36 months</option>
+                <option value="48">48 months</option>
+                <option value="60">60 months</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETUP -->
+      <section class="card" aria-label="Wedding setup">
+        <div class="card-head">
+          <h2>The wedding</h2>
+          <span class="sub">Bengaluru prices, 2026 vendor ranges</span>
+        </div>
+        <div class="presets" id="presets"></div>
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label class="f-label" for="w-date">Wedding date</label>
+              <input type="date" id="w-date" value="2028-02-18" min="2026-11-07" max="2028-12-31" />
+            </div>
+            <div class="field">
+              <label class="f-label" for="w-events">Functions (haldi, sangeet, wedding, reception…)</label>
+              <select id="w-events">
+                <option value="1">1 function</option>
+                <option value="2">2 functions</option>
+                <option value="3" selected>3 functions</option>
+                <option value="4">4 functions</option>
+                <option value="5">5 functions</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label class="f-label" for="w-guests">Guests</label>
+              <div class="range-row">
+                <input type="range" id="w-guests" min="50" max="1200" step="10" value="300" />
+                <output id="w-guests-out">300 guests</output>
+              </div>
+              <p class="hint">Catering, gifts and venue size scale with this number. It is the single biggest lever on the total.</p>
+            </div>
+            <div class="field">
+              <label class="f-label" for="w-style">Venue style</label>
+              <select id="w-style"></select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BREAKDOWN -->
+      <section class="card" aria-label="Cost breakdown">
+        <div class="card-head">
+          <h2>Where the money goes</h2>
+          <span class="sub">Every line is editable — type your own quote over any estimate</span>
+        </div>
+        <div id="cats"></div>
+        <div class="total-row">
+          <span class="t-label">Total</span>
+          <span class="t-value" id="cats-total">—</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn secondary small" id="reset-cats" type="button">Reset estimates to venue style</button>
+        </div>
+      </section>
+
+      <!-- MONEY -->
+      <section class="card" aria-label="Your money">
+        <div class="card-head">
+          <h2>Your money</h2>
+          <span class="sub">Leave a field blank and it counts as zero</span>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label class="f-label" for="m-takehome">Your monthly take-home (₹)</label>
+              <input type="number" id="m-takehome" min="0" step="1000" placeholder="e.g. 110000" />
+            </div>
+            <div class="field">
+              <label class="f-label" for="m-partner">Partner's monthly take-home (₹, if contributing)</label>
+              <input type="number" id="m-partner" min="0" step="1000" placeholder="Optional" />
+            </div>
+            <div class="field">
+              <label class="f-label" for="m-savings">Savings you already have for the wedding (₹)</label>
+              <input type="number" id="m-savings" min="0" step="5000" placeholder="e.g. 300000" />
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label class="f-label" for="m-expenses">Monthly living expenses (₹)</label>
+              <input type="number" id="m-expenses" min="0" step="1000" placeholder="Rent, food, fuel, everything" />
+            </div>
+            <div class="field">
+              <label class="f-label" for="m-emi">Existing EMIs per month (₹)</label>
+              <input type="number" id="m-emi" min="0" step="500" placeholder="Car, personal, card EMIs" />
+            </div>
+            <div class="field">
+              <label class="f-label" for="m-family">Family contribution (₹, if any)</label>
+              <input type="number" id="m-family" min="0" step="5000" placeholder="Optional" />
+            </div>
+          </div>
+        </div>
+        <p class="hint" id="money-note"></p>
+      </section>
+
+      <!-- VENDORS -->
+      <section class="card" aria-label="Vendor tracker">
+        <div class="card-head">
+          <h2>Vendor tracker</h2>
+          <span class="sub">Quotes you have actually received, and what is still owed</span>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width:150px">Vendor</th>
+                <th style="min-width:130px">Category</th>
+                <th class="num" style="min-width:110px">Quoted (₹)</th>
+                <th class="num" style="min-width:110px">Advance paid (₹)</th>
+                <th class="num" style="min-width:110px">Balance (₹)</th>
+                <th style="width:44px"><span class="sr-only"></span></th>
+              </tr>
+            </thead>
+            <tbody id="vendor-body"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2">Totals</td>
+                <td class="num" data-label="Quoted" id="vt-quoted">₹0</td>
+                <td class="num" data-label="Paid" id="vt-paid">₹0</td>
+                <td class="num" data-label="Balance" id="vt-balance">₹0</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="empty-note" id="vendor-empty">No vendors yet. As quotes come in, add them here — the balance column is what you still owe before the date.</p>
+        <div class="btn-row">
+          <button class="btn small" id="add-vendor" type="button">Add a vendor</button>
+        </div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="card" aria-label="Planning timeline">
+        <div class="card-head">
+          <h2>Planning timeline</h2>
+          <span class="sub">Eight steps, dated from your wedding day backwards</span>
+        </div>
+        <ol class="steps" id="steps"></ol>
+        <div class="btn-row">
+          <button class="btn secondary" id="download" type="button">Download this plan as a text file</button>
+        </div>
+      </section>
+
+      <footer>
+        <p>Estimates use 2026 Bengaluru vendor ranges for each venue style at your guest count and function count; your own quotes always win — type them over any line. Figures are planning aids, not quotes. This page keeps everything in the tab you have open; nothing is uploaded anywhere.</p>
+      </footer>
+    </div>
+
+    <script>
+      "use strict";
+      var $ = function (id) { return document.getElementById(id); };
+
+      /* ---------- Cost model: Bengaluru 2026 ranges ----------
+         Per-plate catering rates and per-function venue rates by style.
+         Fixed lines are typical totals for a mid-size (300 guest) wedding. */
+      var STYLES = {
+        mantapa: {
+          name: "Kalyana mantapa",
+          desc: "Traditional hall, own caterer, best value in the city",
+          plate: 600, venuePerFn: 50000,
+          decorPerFn: 40000, photo: 85000, attire: 250000, makeup: 35000,
+          musicPerFn: 13000, giftsPerGuest: 210, misc: 110000
+        },
+        banquet: {
+          name: "Banquet hall / convention centre",
+          desc: "AC hall with in-house catering and decor packages",
+          plate: 1100, venuePerFn: 120000,
+          decorPerFn: 80000, photo: 130000, attire: 400000, makeup: 60000,
+          musicPerFn: 30000, giftsPerGuest: 300, misc: 200000
+        },
+        resort: {
+          name: "Resort / farmhouse lawn",
+          desc: "Outdoor venue on the city edge, decor-heavy",
+          plate: 1600, venuePerFn: 250000,
+          decorPerFn: 150000, photo: 200000, attire: 600000, makeup: 90000,
+          musicPerFn: 60000, giftsPerGuest: 400, misc: 350000
+        },
+        fivestar: {
+          name: "5-star hotel",
+          desc: "Premium hotel ballroom, per-plate pricing, full service",
+          plate: 3000, venuePerFn: 400000,
+          decorPerFn: 267000, photo: 350000, attire: 1200000, makeup: 120000,
+          musicPerFn: 100000, giftsPerGuest: 833, misc: 950000
+        }
+      };
+
+      var CATEGORIES = [
+        { key: "venue",    name: "Venue hire",            basis: function (s, g, e) { return s.venuePerFn * e; },        note: "per function" },
+        { key: "catering", name: "Catering",              basis: function (s, g, e) { return s.plate * g * e; },         note: "per plate × guests × functions" },
+        { key: "decor",    name: "Decor & flowers",       basis: function (s, g, e) { return s.decorPerFn * e; },        note: "per function" },
+        { key: "photo",    name: "Photo & video",         basis: function (s, g, e) { return s.photo; },                 note: "all functions, candid + traditional" },
+        { key: "attire",   name: "Attire & jewellery",    basis: function (s, g, e) { return s.attire; },                note: "both families' main outfits" },
+        { key: "makeup",   name: "Makeup & mehendi",      basis: function (s, g, e) { return s.makeup; },                note: "bridal package + family" },
+        { key: "music",    name: "Music & entertainment", basis: function (s, g, e) { return s.musicPerFn * e; },        note: "DJ / live, per function" },
+        { key: "gifts",    name: "Invites & return gifts",basis: function (s, g, e) { return s.giftsPerGuest * g; },     note: "per guest" },
+        { key: "misc",     name: "Rituals, transport & buffer", basis: function (s, g, e) { return s.misc; },            note: "pandit, cars, guest stays, surprises" }
+      ];
+
+      var state = {
+        style: "mantapa",
+        overrides: {} // category key -> manual amount
+      };
+
+      function fmt(n) {
+        if (!isFinite(n)) n = 0;
+        n = Math.round(n);
+        if (Math.abs(n) >= 100000) {
+          var l = n / 100000;
+          return "₹" + (Math.round(l * 100) / 100).toLocaleString("en-IN") + "L";
+        }
+        return "₹" + n.toLocaleString("en-IN");
+      }
+      function fmtFull(n) {
+        return "₹" + Math.round(n || 0).toLocaleString("en-IN");
+      }
+      function num(id) {
+        var v = parseFloat($(id).value);
+        return isNaN(v) || v < 0 ? 0 : v;
+      }
+
+      function guests() { return parseInt($("w-guests").value, 10) || 300; }
+      function events() { return parseInt($("w-events").value, 10) || 3; }
+
+      function catAmount(cat) {
+        if (state.overrides.hasOwnProperty(cat.key)) return state.overrides[cat.key];
+        return cat.basis(STYLES[state.style], guests(), events());
+      }
+      function totalCost() {
+        return CATEGORIES.reduce(function (sum, c) { return sum + catAmount(c); }, 0);
+      }
+
+      function weddingDate() {
+        var v = $("w-date").value;
+        var d = v ? new Date(v + "T00:00:00") : new Date(2028, 1, 18);
+        return isNaN(d.getTime()) ? new Date(2028, 1, 18) : d;
+      }
+      function monthsToWedding() {
+        var now = new Date();
+        var d = weddingDate();
+        var m = (d.getFullYear() - now.getFullYear()) * 12 + (d.getMonth() - now.getMonth());
+        if (d.getDate() < now.getDate()) m -= 1;
+        return Math.max(0, m);
+      }
+
+      /* ---------- Render: presets & style select ---------- */
+      function renderPresets() {
+        var box = $("presets");
+        box.innerHTML = "";
+        Object.keys(STYLES).forEach(function (key) {
+          var s = STYLES[key];
+          var t = CATEGORIES.reduce(function (sum, c) { return sum + c.basis(s, guests(), events()); }, 0);
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "preset" + (state.style === key ? " active" : "");
+          b.innerHTML = '<div class="p-name"></div><div class="p-price"></div><div class="p-desc"></div>';
+          b.querySelector(".p-name").textContent = s.name;
+          b.querySelector(".p-price").textContent = fmt(t);
+          b.querySelector(".p-desc").textContent = s.desc;
+          b.addEventListener("click", function () {
+            state.style = key;
+            state.overrides = {};
+            $("w-style").value = key;
+            renderAll();
+          });
+          box.appendChild(b);
+        });
+        var sel = $("w-style");
+        if (!sel.options.length) {
+          Object.keys(STYLES).forEach(function (key) {
+            var o = document.createElement("option");
+            o.value = key; o.textContent = STYLES[key].name;
+            sel.appendChild(o);
+          });
+          sel.value = state.style;
+        }
+      }
+
+      /* ---------- Render: category rows ---------- */
+      function renderCats() {
+        var box = $("cats");
+        box.innerHTML = "";
+        var total = totalCost();
+        CATEGORIES.forEach(function (cat) {
+          var amt = catAmount(cat);
+          var row = document.createElement("div");
+          row.className = "cat-row";
+          var pct = total > 0 ? Math.max(1.5, (amt / total) * 100) : 0;
+          row.innerHTML =
+            '<div><div class="cat-name"></div><div class="cat-basis"></div>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div></div>' +
+            '<input type="number" min="0" step="1000" aria-label="Amount" />';
+          row.querySelector(".cat-name").textContent = cat.name;
+          row.querySelector(".cat-basis").textContent =
+            cat.note + (state.overrides.hasOwnProperty(cat.key) ? " · your figure" : " · estimate");
+          var inp = row.querySelector("input");
+          inp.value = Math.round(amt);
+          inp.addEventListener("change", function () {
+            var v = parseFloat(inp.value);
+            if (isNaN(v) || v < 0) { delete state.overrides[cat.key]; }
+            else { state.overrides[cat.key] = v; }
+            renderAll();
+          });
+          box.appendChild(row);
+        });
+        $("cats-total").textContent = fmtFull(total);
+      }
+
+      /* ---------- Verdict & loan ---------- */
+      function renderVerdict() {
+        var total = totalCost();
+        var months = monthsToWedding();
+        var takehome = num("m-takehome") + num("m-partner");
+        var expenses = num("m-expenses");
+        var emi = num("m-emi");
+        var savings = num("m-savings");
+        var family = num("m-family");
+        var monthlyFree = takehome - expenses - emi;
+        var projected = savings + family + Math.max(0, monthlyFree) * months;
+        var gap = total - projected;
+        var anyMoney = takehome > 0 || savings > 0 || family > 0 || expenses > 0 || emi > 0;
+
+        $("v-total").textContent = fmt(total);
+        $("v-perguest").textContent = fmtFull(total / Math.max(1, guests())) + " per guest";
+        $("v-months").textContent = months + (months === 1 ? " month" : " months") + " to " +
+          weddingDate().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+        var line = $("v-line");
+        var loanBox = $("loan-box");
+        loanBox.hidden = true;
+
+        $("v-saved").textContent = fmt(projected);
+
+        if (!anyMoney) {
+          $("money-note").textContent = "";
+        } else if (monthlyFree < 0) {
+          $("money-note").textContent = "Your monthly outgo (expenses + EMIs) is above take-home, so savings are not growing — the projection holds your current savings flat.";
+        } else {
+          $("money-note").textContent = "Projection: current savings + family contribution + " + fmtFull(Math.max(0, monthlyFree)) + " free each month × " + months + " months.";
+        }
+
+        if (gap <= 0) {
+          $("v-gap").textContent = "₹0";
+          $("v-gapnote").textContent = "fully covered";
+          $("v-monthly").textContent = "₹0 extra";
+          line.className = "verdict-line ok";
+          line.innerHTML = "This plan is <strong>covered</strong>. On your current numbers you reach the date with " +
+            "<strong>" + fmt(projected) + "</strong> against a <strong>" + fmt(total) + "</strong> wedding — " +
+            fmt(-gap) + " to spare. The levers below still work if you want to upgrade a line or two.";
+          return;
+        }
+
+        $("v-gap").textContent = fmt(gap);
+        $("v-gapnote").textContent = "short by the wedding date";
+        var need = months > 0 ? gap / months : gap;
+        $("v-monthly").textContent = fmt(need) + (anyMoney ? " extra" : "");
+        if (!anyMoney) {
+          line.className = "verdict-line neutral";
+          line.innerHTML = "On a blank slate — nothing saved yet, no income entered — the whole <strong>" + fmt(total) +
+            "</strong> is the gap, which takes <strong>" + fmt(need) + " a month</strong> from now. " +
+            "Enter your income and savings below and the verdict gets personal: what you will actually have, and the exact gap.";
+        } else {
+          line.className = "verdict-line warn";
+          line.innerHTML = "You land <strong>" + fmt(gap) + " short</strong>. Closing it from savings alone means finding an extra " +
+            "<strong>" + fmt(need) + " a month</strong> for the next " + months + " months — or trimming the plan, or borrowing. " +
+            "Borrowing is priced below so the trade-off is in the open.";
+        }
+        // Loan math — always shown while there is a gap
+        var rate = (parseFloat($("loan-rate").value) || 0) / 100 / 12;
+        var n = parseInt($("loan-tenure").value, 10) || 36;
+        var emiLoan = rate > 0 ? gap * rate * Math.pow(1 + rate, n) / (Math.pow(1 + rate, n) - 1) : gap / n;
+        var interest = emiLoan * n - gap;
+        $("loan-text").innerHTML = "A personal loan of <strong>" + fmt(gap) + "</strong> over " + n + " months costs " +
+          "<strong>" + fmtFull(emiLoan) + " a month</strong>, and <strong>" + fmt(interest) + "</strong> of that is pure interest — " +
+          "money that buys nothing at the wedding. Cutting catering by " + fmt(Math.min(gap, total * 0.1)) +
+          " of scope, or dropping one function, usually beats borrowing.";
+        loanBox.hidden = false;
+      }
+
+      /* ---------- Timeline ---------- */
+      var STEPS = [
+        { m: 12, title: "Lock the budget and book the venue", text: "Venues in Bengaluru book out 10–14 months ahead for muhurtham dates. Fix the total first, then sign the venue — it anchors every other cost." },
+        { m: 10, title: "Book caterer, photo and video", text: "Good caterers and candid photographers are the next to go. Take tastings and full-album samples before paying advances." },
+        { m: 8,  title: "Attire and jewellery shopping", text: "Silk, lehengas and gold need tailoring and making time. Buy gold in tranches if prices are moving, not all in the wedding month." },
+        { m: 6,  title: "Decor, makeup artist and entertainment", text: "Book the decor team and MUA, and do the makeup trial now — not in the wedding week. Confirm DJ or live acts for sangeet." },
+        { m: 4,  title: "Invitations out, guest list frozen", text: "Send invitations and start collecting RSVPs. Your caterer needs a defensible headcount, and every 50 extra guests moves catering by a real number." },
+        { m: 2,  title: "Fittings, trials and vendor confirmations", text: "Final outfit fittings, confirm timings and advances with every vendor in writing, and book guest transport and stays." },
+        { m: 1,  title: "Final headcount and payment schedule", text: "Give the caterer the final count (plan plates at RSVP + 10%), line up balance payments, and brief one family member as day-of coordinator." },
+        { m: 0,  title: "Wedding week", text: "Ritual items, cash envelopes for on-the-day vendors, and a printed run-sheet for every function. Then stop planning and show up." }
+      ];
+      function renderSteps() {
+        var ol = $("steps");
+        ol.innerHTML = "";
+        var d = weddingDate();
+        var now = new Date();
+        STEPS.forEach(function (s) {
+          var when = new Date(d.getFullYear(), d.getMonth() - s.m, d.getDate());
+          var li = document.createElement("li");
+          li.className = "step" + (when <= now ? " due" : "");
+          var label = s.m === 0 ? "Wedding week" : (s.m + (s.m === 1 ? " month" : " months") + " before");
+          li.innerHTML = '<div class="when">' + label + '<span class="date"></span></div>' +
+            '<div class="what"><strong></strong><span></span></div>';
+          li.querySelector(".date").textContent = when <= now && s.m > 0
+            ? "due now"
+            : when.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+          li.querySelector(".what strong").textContent = s.title;
+          li.querySelector(".what span").textContent = s.text;
+          ol.appendChild(li);
+        });
+      }
+
+      /* ---------- Vendor tracker (this session only) ---------- */
+      var vendors = [];
+      function renderVendors() {
+        var body = $("vendor-body");
+        body.innerHTML = "";
+        var tq = 0, tp = 0;
+        vendors.forEach(function (v, i) {
+          tq += v.quoted; tp += v.paid;
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td data-label="Vendor"><input type="text" placeholder="Vendor name" /></td>' +
+            '<td data-label="Category"><select>' + CATEGORIES.map(function (c) { return '<option value="' + c.key + '">' + c.name + "</option>"; }).join("") + "</select></td>" +
+            '<td class="num" data-label="Quoted (₹)"><input type="number" min="0" step="1000" placeholder="0" style="text-align:right" /></td>' +
+            '<td class="num" data-label="Advance paid (₹)"><input type="number" min="0" step="1000" placeholder="0" style="text-align:right" /></td>' +
+            '<td class="num bal" data-label="Balance (₹)"></td>' +
+            '<td class="del-cell"><button type="button" class="btn danger small" aria-label="Remove vendor">✕</button></td>';
+          var inputs = tr.querySelectorAll("input");
+          var sel = tr.querySelector("select");
+          inputs[0].value = v.name; sel.value = v.cat;
+          inputs[1].value = v.quoted || ""; inputs[2].value = v.paid || "";
+          tr.querySelector(".bal").textContent = fmtFull(v.quoted - v.paid);
+          inputs[0].addEventListener("input", function () { v.name = inputs[0].value; });
+          sel.addEventListener("change", function () { v.cat = sel.value; });
+          inputs[1].addEventListener("change", function () { v.quoted = parseFloat(inputs[1].value) || 0; renderVendors(); renderVerdict(); });
+          inputs[2].addEventListener("change", function () { v.paid = parseFloat(inputs[2].value) || 0; renderVendors(); renderVerdict(); });
+          tr.querySelector("button").addEventListener("click", function () { vendors.splice(i, 1); renderVendors(); renderVerdict(); });
+          body.appendChild(tr);
+        });
+        $("vt-quoted").textContent = fmtFull(tq);
+        $("vt-paid").textContent = fmtFull(tp);
+        $("vt-balance").textContent = fmtFull(tq - tp);
+        $("vendor-empty").style.display = vendors.length ? "none" : "block";
+      }
+
+      /* ---------- Download ---------- */
+      function downloadPlan() {
+        var lines = [];
+        lines.push("WEDDING BUDGET PLAN — Bengaluru");
+        lines.push("Wedding date: " + weddingDate().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }));
+        lines.push("Guests: " + guests() + " · Functions: " + events() + " · Venue style: " + STYLES[state.style].name);
+        lines.push("");
+        lines.push("COST BREAKDOWN");
+        CATEGORIES.forEach(function (c) { lines.push("  " + c.name + ": " + fmtFull(catAmount(c))); });
+        lines.push("  TOTAL: " + fmtFull(totalCost()));
+        lines.push("");
+        var months = monthsToWedding();
+        var takehome = num("m-takehome") + num("m-partner");
+        var projected = num("m-savings") + num("m-family") + Math.max(0, takehome - num("m-expenses") - num("m-emi")) * months;
+        lines.push("YOUR MONEY");
+        lines.push("  Projected savings by the date: " + fmtFull(projected));
+        lines.push("  Gap: " + fmtFull(Math.max(0, totalCost() - projected)));
+        if (vendors.length) {
+          lines.push("");
+          lines.push("VENDORS");
+          vendors.forEach(function (v) {
+            lines.push("  " + (v.name || "Unnamed") + " — quoted " + fmtFull(v.quoted) + ", paid " + fmtFull(v.paid) + ", balance " + fmtFull(v.quoted - v.paid));
+          });
+        }
+        lines.push("");
+        lines.push("TIMELINE");
+        var d = weddingDate();
+        STEPS.forEach(function (s) {
+          var when = new Date(d.getFullYear(), d.getMonth() - s.m, d.getDate());
+          lines.push("  " + when.toLocaleDateString("en-IN", { month: "short", year: "numeric" }) + " — " + s.title);
+        });
+        var blob = new Blob([lines.join("\n")], { type: "text/plain" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "wedding-budget-plan.txt";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      }
+
+      function renderAll() { renderPresets(); renderCats(); renderVerdict(); renderSteps(); }
+
+      /* ---------- Events ---------- */
+      $("w-guests").addEventListener("input", function () {
+        $("w-guests-out").textContent = guests() + " guests";
+        renderAll();
+      });
+      $("w-events").addEventListener("change", renderAll);
+      $("w-date").addEventListener("change", renderAll);
+      $("w-style").addEventListener("change", function () {
+        state.style = $("w-style").value;
+        state.overrides = {};
+        renderAll();
+      });
+      ["m-takehome", "m-partner", "m-savings", "m-expenses", "m-emi", "m-family", "loan-rate", "loan-tenure"].forEach(function (id) {
+        $(id).addEventListener("input", renderVerdict);
+        $(id).addEventListener("change", renderVerdict);
+      });
+      $("reset-cats").addEventListener("click", function () { state.overrides = {}; renderAll(); });
+      $("add-vendor").addEventListener("click", function () {
+        vendors.push({ name: "", cat: "venue", quoted: 0, paid: 0 });
+        renderVendors();
+      });
+      $("download").addEventListener("click", downloadPlan);
+
+      renderPresets();
+      renderCats();
+      renderVerdict();
+      renderSteps();
+      renderVendors();
+    </script>
+  </body>
+</html>
